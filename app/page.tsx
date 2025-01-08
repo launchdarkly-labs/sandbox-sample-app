@@ -1,156 +1,111 @@
-import Image from "next/image";
 import * as LaunchDarkly from "launchdarkly-node-server-sdk";
 
-export const dynamic = 'force-dynamic'
+// Add new imports for our demo UI
+import LoginForm from "./components/LoginForm";
+import LogoutButton from "./components/LogoutButton";
+import DatabaseStatus from "./components/DatabaseStatus";
+import BrandingDemo from "./components/BrandingDemo";
+
+export const dynamic = "force-dynamic";
 
 async function getFlags() {
-  console.log('Initializing LaunchDarkly client...');
-  
-  if(!process.env.LAUNCHDARKLY_SDK_KEY) {
+  console.log("Initializing LaunchDarkly client...");
+
+  if (!process.env.LAUNCHDARKLY_SDK_KEY) {
     throw new Error("LAUNCHDARKLY_SDK_KEY required");
   }
 
-  let client;
-  try {
-    console.log(process.env.LAUNCHDARKLY_SDK_KEY)
-    client = LaunchDarkly.init(process.env.LAUNCHDARKLY_SDK_KEY, {
-      baseUri:"https://sdk-stg.launchdarkly.com",
-      eventsUri:"https://events-stg.launchdarkly.com",
-      streamUri:"https://stream-stg.launchdarkly.com"
-    });
-    console.log('Waiting for initialization...');
-    await client.waitForInitialization();
-    
-    const context = {
-      kind: 'user',
-      key: 'example-user-key',
-    };
+  const client = LaunchDarkly.init(process.env.LAUNCHDARKLY_SDK_KEY, {
+    baseUri: "https://sdk-stg.launchdarkly.com",
+    eventsUri: "https://events-stg.launchdarkly.com",
+    streamUri: "https://stream-stg.launchdarkly.com",
+  });
 
-    // Get flag value
-    const result = await client.variation('enable-logout-api-v2', context, false);
-    console.log('Flag value:', result);
-    
-    return [result];
+  console.log("Waiting for initialization...");
+  await client.waitForInitialization();
+
+  const context = {
+    kind: "user",
+    key: "example-user-key",
+  };
+
+  // Define flag names
+  const flagNames = [
+    "enable-logout-api-v2",
+    "enable-cloud-db",
+    "enable-oauth-login-flow",
+    "enable-new-brand-ia",
+  ];
+
+  try {
+    // Get all flag values
+    const flags = await Promise.all(
+      flagNames.map(async (flagName) => ({
+        name: flagName,
+        value: await client.variation(flagName, context, false),
+      }))
+    );
+
+    return flags;
   } catch (error) {
-    console.error('LaunchDarkly error:', error);
+    console.error("LaunchDarkly error:", error);
     throw error;
   } finally {
-    if (client) {
-      await client.close();
-    }
+    await client.close();
   }
 }
 
 export default async function Home() {
   const flags = await getFlags();
 
+  // Convert flags array to an easy-to-use object
+  const flagValues = flags.reduce(
+    (acc, flag) => ({
+      ...acc,
+      [flag.name]: flag.value,
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    {} as Record<string, any>
+  );
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen p-8">
+      <main className="max-w-4xl mx-auto space-y-8">
+        <h1 className="text-3xl font-bold mb-8">Feature Flag Demo</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+        {/* Database Section */}
+        <section className="p-6 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Database Configuration</h2>
+          <DatabaseStatus
+            isCloudEnabled={flagValues["enable-cloud-db"] !== "off"}
+            description="Migration status from on-prem to cloud database"
+          />
+        </section>
 
-        <div className="w-full max-w-2xl mt-8 p-6 bg-black/[.05] dark:bg-white/[.06] rounded-lg">
-          <h2 className="text-lg font-bold mb-4">LaunchDarkly Flags</h2>
-          <div className="font-mono text-sm space-y-2">
-            {flags.map((value, index) => (
-              <div key={index} className="flex justify-between items-start gap-4 p-2 border-b border-black/10 dark:border-white/10">
-                <span className="font-semibold">Flag {index}:</span>
-                <span className="text-right">{JSON.stringify(value, null, 2)}</span>
-              </div>
-            ))}
+        {/* Authentication Section */}
+        <section className="p-6 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Authentication</h2>
+          <LoginForm showOAuth={flagValues["enable-oauth-login-flow"]} />
+
+          <div className="mt-4">
+            <LogoutButton useV2={flagValues["enable-logout-api-v2"]} />
           </div>
-        </div>
+        </section>
+
+        {/* Branding Section */}
+        {flagValues["enable-new-brand-ia"] && (
+          <section className="p-6 border rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">New Brand Experience</h2>
+            <BrandingDemo />
+          </section>
+        )}
+
+        {/* Debug: Display raw flag values */}
+        <section className="p-6 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Feature Flag Status</h2>
+          <pre className="text-sm">{JSON.stringify(flags, null, 2)}</pre>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
