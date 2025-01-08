@@ -1,5 +1,12 @@
 name: Manually Add Code References to LaunchDarkly Project
 
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: "Type of environment to provision (eap or production)"
+        required: true
+
 env:
   LD_API_KEY: ${secrets.LD_API_KEY}
   LD_PROJECT_KEY: ${secrets.LD_PROJECT_KEY}
