@@ -5,25 +5,11 @@ import LoginForm from "./components/LoginForm";
 import LogoutButton from "./components/LogoutButton";
 import DatabaseStatus from "./components/DatabaseStatus";
 import BrandingDemo from "./components/BrandingDemo";
+import { ldServerClient } from "./lib/ldServerSdk";
 
 export const dynamic = "force-dynamic";
 
 async function getFlags() {
-  console.log("Initializing LaunchDarkly client...");
-
-  if (!process.env.LAUNCHDARKLY_SDK_KEY) {
-    throw new Error("LAUNCHDARKLY_SDK_KEY required");
-  }
-
-  const client = LaunchDarkly.init(process.env.LAUNCHDARKLY_SDK_KEY, {
-    baseUri: "https://sdk-stg.launchdarkly.com",
-    eventsUri: "https://events-stg.launchdarkly.com",
-    streamUri: "https://stream-stg.launchdarkly.com",
-  });
-
-  console.log("Waiting for initialization...");
-  await client.waitForInitialization();
-
   const context = {
     kind: "user",
     key: "example-user-key",
@@ -42,7 +28,7 @@ async function getFlags() {
     const flags = await Promise.all(
       flagNames.map(async (flagName) => ({
         name: flagName,
-        value: await client.variation(flagName, context, false),
+        value: await ldServerClient.variation(flagName, context, false),
       }))
     );
 
@@ -50,8 +36,6 @@ async function getFlags() {
   } catch (error) {
     console.error("LaunchDarkly error:", error);
     throw error;
-  } finally {
-    await client.close();
   }
 }
 
