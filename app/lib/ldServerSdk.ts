@@ -35,7 +35,7 @@ const globalForLDServer = global as unknown as {
 
 export const ldServerClient =
   globalForLDServer.ldServerClient ||
-  (async () => await createNewLaunchdarklyServerClient())();
+  (await createNewLaunchdarklyServerClient());
 
 if (process.env.NODE_ENV !== "production")
   globalForLDServer.ldServerClient = ldServerClient;

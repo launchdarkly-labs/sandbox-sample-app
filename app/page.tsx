@@ -10,6 +10,8 @@ import { ldServerClient } from "./lib/ldServerSdk";
 export const dynamic = "force-dynamic";
 
 async function getFlags() {
+  const client =  ldServerClient;  // await the Promise to get the actual client
+
   const context = {
     kind: "user",
     key: "example-user-key",
@@ -28,7 +30,7 @@ async function getFlags() {
     const flags = await Promise.all(
       flagNames.map(async (flagName) => ({
         name: flagName,
-        value: await ldServerClient.variation(flagName, context, false),
+        value: await client.variation(flagName, context, false),
       }))
     );
 
