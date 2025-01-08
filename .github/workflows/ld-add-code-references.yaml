@@ -1,17 +1,8 @@
 name: Manually Add Code References to LaunchDarkly Project
 
-on:
-  workflow_dispatch:
-    inputs:
-      name:
-        description: "User alias or LD env key"
-        required: true
-      type:
-        description: "Type of environment to provision (eap or production)"
-        required: true
-
 env:
-  LD_PROJECT_KEY: ${{ github.event.inputs.name }}-ld-demo
+  LD_API_KEY: ${secrets.LD_API_KEY}
+  LD_PROJECT_KEY: ${secrets.LD_PROJECT_KEY}
 
 jobs:
   add-code-references:
@@ -21,9 +12,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 11
-
-      - name: Set LD_API_KEY
-        run: echo "LD_API_KEY=$(if [ '${{ github.event.inputs.type }}' == 'production' ]; then echo '${{ secrets.LD_API_KEY }}'; elif [ '${{ github.event.inputs.type }}' == 'eap' ]; then echo '${{ secrets.LD_EAP_API_KEY }}'; else echo '${{ secrets.LD_API_KEY }}'; fi)" >> $GITHUB_ENV
 
       - name: LaunchDarkly Code References
         uses: launchdarkly/find-code-references@v2.12.0
