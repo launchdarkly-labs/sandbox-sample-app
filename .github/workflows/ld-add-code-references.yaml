@@ -1,4 +1,4 @@
-name: Manually Add Code References to LaunchDarkly Project
+name: Find flag code references
 
 on:
   workflow_dispatch:
@@ -7,22 +7,25 @@ on:
         description: "Type of environment to provision (eap or production)"
         required: true
 
-env:
-  LD_API_KEY: ${secrets.LD_API_KEY}
-  LD_PROJECT_KEY: ${secrets.LD_PROJECT_KEY}
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  add-code-references:
+  find-code-references:
+    name: Find code references
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 11
-
-      - name: LaunchDarkly Code References
-        uses: launchdarkly/find-code-references@v2.12.0
+          fetch-depth: 3 # used with lookback for extinctions
+      - name: Find code refereneces
+        uses: launchdarkly/find-code-references@v2
         with:
-          accessToken: ${{ env.LD_API_KEY }}
-          projKey: ${{ env.LD_PROJECT_KEY }}
-          repoName: main
+          accessToken: ${{ secrets.LD_API_KEY }}
+          baseUri: https://ld-stg.launchdarkly.com
+          contextLines: 5
+          debug: true
+          ignoreServiceErrors: true
+          projKey: default # may omit if repo has projects configured in config file. See https://github.com/launchdarkly/ld-find-code-refs/blob/main/docs/CONFIGURATION.md#yaml
