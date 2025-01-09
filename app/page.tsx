@@ -10,7 +10,7 @@ import { ldServerClient } from "./lib/ldServerSdk";
 export const dynamic = "force-dynamic";
 
 async function getFlags() {
-  const client =  ldServerClient;  // await the Promise to get the actual client
+  const client = ldServerClient; // await the Promise to get the actual client
 
   const context = {
     kind: "user",
@@ -19,6 +19,8 @@ async function getFlags() {
 
   // Define flag names
   const flagNames = [
+    "enable-ai-suggestions",
+    "enable-onboarding-v2",
     "enable-logout-api-v2",
     "enable-cloud-db",
     "enable-oauth-login-flow",
