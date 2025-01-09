@@ -1,14 +1,18 @@
 name: Find flag code references
 
-on: workflow_dispatch
+on:
+  workflow_dispatch: # Keeps manual trigger
+  push: # Adds push trigger
+  schedule:
+    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  launchDarklyCodeReferences:
-    name: LaunchDarkly Code References
+  launchDarklyCodeReferencesStaging:
+    name: LaunchDarkly Code References Staging
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,6 +23,22 @@ jobs:
         with:
           baseUri: https://ld-stg.launchdarkly.com
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          accessToken: ${{ secrets.LD_ACCESS_TOKEN }}
+          accessToken: ${{ secrets.LD_ACCESS_TOKEN_STAGING }}
+          projKey: default
+          debug: true
+
+  launchDarklyCodeReferencesProd:
+    name: LaunchDarkly Code References Prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 11 # This value must be set if the lookback configuration option is not disabled for find-code-references. Read more: https://github.com/launchdarkly/ld-find-code-refs#searching-for-unused-flags-extinctions
+      - name: LaunchDarkly Code References
+        uses: launchdarkly/find-code-references@v2.13.0
+        with:
+          baseUri: https://app.launchdarkly.com
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          accessToken: ${{ secrets.LD_ACCESS_TOKEN_PROD }}
           projKey: default
           debug: true
