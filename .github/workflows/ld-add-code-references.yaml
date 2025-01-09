@@ -1,11 +1,6 @@
 name: Find flag code references
 
-on:
-  workflow_dispatch:
-    inputs:
-      type:
-        description: "Type of environment to provision (eap or production)"
-        required: true
+on: workflow_dispatch
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
