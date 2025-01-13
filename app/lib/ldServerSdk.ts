@@ -6,22 +6,10 @@ const createNewLaunchdarklyServerClient = async () => {
     throw new Error("LAUNCHDARKLY_SDK_KEY required");
   }
 
-  if (!process.env.LAUNCHDARKLY_BASE_URI) {
-    throw new Error("LAUNCHDARKLY_BASE_URI required");
-  }
-
-  if (!process.env.LAUNCHDARKLY_EVENTS_URI) {
-    throw new Error("LAUNCHDARKLY_EVENTS_URI required");
-  }
-
-  if (!process.env.LAUNCHDARKLY_STREAM_URI) {
-    throw new Error("LAUNCHDARKLY_STREAM_URI required");
-  }
-
-  const client = LaunchDarkly.init(process.env.LAUNCHDARKLY_SDK_KEY ?? "", {
-    baseUri: process.env.LAUNCHDARKLY_BASE_URI,
-    eventsUri: process.env.LAUNCHDARKLY_EVENTS_URI,
-    streamUri: process.env.LAUNCHDARKLY_STREAM_URI,
+  const client = LaunchDarkly.init(process.env.LAUNCHDARKLY_SDK_KEY, {
+    baseUri: process.env.LAUNCHDARKLY_BASE_URI ?? undefined,
+    eventsUri: process.env.LAUNCHDARKLY_EVENTS_URI ?? undefined,
+    streamUri: process.env.LAUNCHDARKLY_STREAM_URI ?? undefined,
   });
 
   await client.waitForInitialization();
