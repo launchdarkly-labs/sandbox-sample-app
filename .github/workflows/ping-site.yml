@@ -1,4 +1,4 @@
-name: Ping Site
+name: Ping site
 
 on:
   schedule:
