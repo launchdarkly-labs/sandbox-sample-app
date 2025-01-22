@@ -4,7 +4,7 @@ on:
   workflow_dispatch: # Keeps manual trigger
   push: # Adds push trigger
   schedule:
-    - cron: "0 */2 * * *" # Runs at 00:00 UTC every day
+    - cron: "0 */2 * * *" # Runs every 2 hours
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
