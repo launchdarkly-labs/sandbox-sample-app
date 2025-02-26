@@ -1,5 +1,3 @@
-import * as LaunchDarkly from "launchdarkly-node-server-sdk";
-
 // Add new imports for our demo UI
 import LoginForm from "./components/LoginForm";
 import LogoutButton from "./components/LogoutButton";
