@@ -1,10 +1,9 @@
-import * as LaunchDarkly from "launchdarkly-node-server-sdk";
-
 // Add new imports for our demo UI
 import LoginForm from "./components/LoginForm";
 import LogoutButton from "./components/LogoutButton";
 import DatabaseStatus from "./components/DatabaseStatus";
 import BrandingDemo from "./components/BrandingDemo";
+import UserProfile from "./components/UserProfile";
 import { ldServerClient } from "./lib/ldServerSdk";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +24,7 @@ async function getFlags() {
     "enable-cloud-db",
     "enable-oauth-login-flow",
     "enable-new-brand-ia",
+    "enable-enhanced-user-profiles",
   ];
 
   try {
@@ -60,6 +60,14 @@ export default async function Home() {
     <div className="min-h-screen p-8">
       <main className="max-w-4xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold mb-8">Feature Flag Demo</h1>
+
+        {/* User Profile Section */}
+        <section className="p-6 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">User Profile</h2>
+          <UserProfile 
+            enableEnhancedProfiles={flagValues["enable-enhanced-user-profiles"]} 
+          />
+        </section>
 
         {/* Database Section */}
         <section className="p-6 border rounded-lg">
